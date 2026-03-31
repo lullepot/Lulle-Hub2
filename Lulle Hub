@@ -3,204 +3,245 @@ local UIS = game:GetService("UserInputService")
 
 local Config = {
     ESPDistance = 192,
-    ESPColor = Color3.fromRGB(0,255,120)
+    ESPColor = Color3.fromRGB(0,255,120),
+    CloverESP = false,
+    EggESP = false,
+    CoinESP = false,
+    AutoFarm = false
 }
 
-local FIXED_KEY = "LULLE-PAULO-FOREVER-2026"
+local VALID_KEYS = {
+    ["lulle_190228_bte"] = true,
+    ["LULLE_19A228_BTE"] = true,
+    ["LULLE_20B331_BTE"] = true,
+    ["LULLE_21C442_BTE"] = true,
+    ["LULLE_22D553_BTE"] = true
+}
+
+local OWNER_KEY = "lulle_190228_bte"
+
+local function round(obj, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius or 20)
+    c.Parent = obj
+end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "LulleHub"
+gui.Name = "LulleHubUltra"
 gui.Parent = player:WaitForChild("PlayerGui")
 gui.ResetOnSpawn = false
 
--- HUB PRINCIPAL
 local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0,820,0,480)
-main.Position = UDim2.new(0.5,-410,0.5,-240)
+main.Size = UDim2.new(0, 900, 0, 540)
+main.Position = UDim2.new(0.5, -450, 0.5, -270)
 main.BackgroundColor3 = Color3.fromRGB(10,10,10)
 main.Active = true
 main.Draggable = true
 main.Visible = false
-Instance.new("UICorner", main)
+round(main, 28)
 
--- TOPO
+local stroke = Instance.new("UIStroke", main)
+stroke.Thickness = 2
+stroke.Color = Color3.fromRGB(40,40,40)
+
 local top = Instance.new("Frame", main)
-top.Size = UDim2.new(1,0,0,70)
-top.BackgroundColor3 = Color3.fromRGB(15,15,15)
+top.Size = UDim2.new(1,0,0,75)
+top.BackgroundColor3 = Color3.fromRGB(16,16,16)
+round(top, 24)
 
 local logo = Instance.new("ImageLabel", top)
-logo.Size = UDim2.new(0,55,0,55)
-logo.Position = UDim2.new(0,10,0,7)
+logo.Size = UDim2.new(0,58,0,58)
+logo.Position = UDim2.new(0,10,0,8)
 logo.BackgroundTransparency = 1
 logo.Image = "rbxassetid://89810182298862"
 
 local title = Instance.new("TextLabel", top)
-title.Size = UDim2.new(0,300,1,0)
-title.Position = UDim2.new(0,75,0,0)
+title.Size = UDim2.new(0,350,1,0)
+title.Position = UDim2.new(0,80,0,0)
 title.BackgroundTransparency = 1
-title.Text = "Lulle Hub 😈"
+title.Text = "Lulle Hub "
 title.TextColor3 = Color3.fromRGB(255,255,255)
 title.TextSize = 26
 title.Font = Enum.Font.GothamBold
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- BOTÃO MINIMIZAR
-local minimize = Instance.new("TextButton", main)
-minimize.Size = UDim2.new(0,140,0,35)
-minimize.Position = UDim2.new(1,-150,0,10)
+local minimize = Instance.new("TextButton", top)
+minimize.Size = UDim2.new(0,150,0,40)
+minimize.Position = UDim2.new(1,-165,0.5,-20)
 minimize.Text = "MINIMIZAR"
-minimize.BackgroundColor3 = Color3.fromRGB(30,30,30)
-minimize.TextColor3 = Color3.fromRGB(255,255,255)
-Instance.new("UICorner", minimize)
+minimize.BackgroundColor3 = Color3.fromRGB(28,28,28)
+minimize.TextColor3 = Color3.new(1,1,1)
+minimize.Font = Enum.Font.GothamBold
+round(minimize, 18)
 
 minimize.MouseButton1Click:Connect(function()
-	main.Visible = false
+    main.Visible = false
 end)
 
--- TECLA X
 UIS.InputBegan:Connect(function(input,gp)
-	if not gp and input.KeyCode == Enum.KeyCode.X then
-		main.Visible = not main.Visible
-	end
+    if not gp and input.KeyCode == Enum.KeyCode.X then
+        main.Visible = not main.Visible
+    end
 end)
 
--- MENU LATERAL
 local side = Instance.new("Frame", main)
-side.Size = UDim2.new(0,180,1,-70)
-side.Position = UDim2.new(0,0,0,70)
-side.BackgroundColor3 = Color3.fromRGB(20,20,20)
+side.Size = UDim2.new(0,190,1,-90)
+side.Position = UDim2.new(0,10,0,85)
+side.BackgroundColor3 = Color3.fromRGB(18,18,18)
+round(side, 22)
 
--- CONTEÚDO
 local content = Instance.new("Frame", main)
-content.Size = UDim2.new(1,-190,1,-80)
-content.Position = UDim2.new(0,190,0,80)
+content.Size = UDim2.new(1,-220,1,-100)
+content.Position = UDim2.new(0,210,0,90)
 content.BackgroundColor3 = Color3.fromRGB(8,8,8)
+round(content, 22)
 
--- TABS
 local tabs = {}
 
 local function createTab(name)
-	local f = Instance.new("Frame", content)
-	f.Name = name
-	f.Size = UDim2.new(1,0,1,0)
-	f.BackgroundTransparency = 1
-	f.Visible = false
-	tabs[name] = f
-	return f
+    local f = Instance.new("Frame", content)
+    f.Name = name
+    f.Size = UDim2.new(1,0,1,0)
+    f.BackgroundTransparency = 1
+    f.Visible = false
+    tabs[name] = f
+    return f
 end
 
 local espTab = createTab("ESP")
 local farmTab = createTab("FARM")
 local configTab = createTab("CONFIG")
+local ownerTab = createTab("OWNER")
 espTab.Visible = true
 
 local function switchTab(tab)
-	for k,v in pairs(tabs) do
-		v.Visible = (k == tab)
-	end
+    for k,v in pairs(tabs) do
+        v.Visible = (k == tab)
+    end
 end
 
 local function menuBtn(text,y,tab)
-	local b = Instance.new("TextButton", side)
-	b.Size = UDim2.new(1,-20,0,50)
-	b.Position = UDim2.new(0,10,0,y)
-	b.Text = "◉ "..text
-	b.BackgroundColor3 = Color3.fromRGB(30,30,30)
-	b.TextColor3 = Color3.fromRGB(0,255,120)
-	b.TextSize = 18
-	b.Font = Enum.Font.GothamBold
-	Instance.new("UICorner", b)
+    local b = Instance.new("TextButton", side)
+    b.Size = UDim2.new(1,-20,0,52)
+    b.Position = UDim2.new(0,10,0,y)
+    b.Text = "◉ "..text
+    b.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    b.TextColor3 = Color3.fromRGB(0,255,120)
+    b.TextSize = 18
+    b.Font = Enum.Font.GothamBold
+    round(b, 20)
 
-	b.MouseButton1Click:Connect(function()
-		switchTab(tab)
-	end)
+    b.MouseButton1Click:Connect(function()
+        switchTab(tab)
+    end)
+
+    return b
 end
 
-menuBtn("ESP",20,"ESP")
-menuBtn("FARM",90,"FARM")
-menuBtn("CONFIG",160,"CONFIG")
+local espBtn = menuBtn("ESP",20,"ESP")
+local farmBtn = menuBtn("AUTO FARM",90,"FARM")
+local configBtn = menuBtn("CONFIG",160,"CONFIG")
+local ownerBtn = nil
 
--- BOTÕES VISUAIS
-local function createButton(parent,text,y)
-	local btn = Instance.new("TextButton", parent)
-	btn.Size = UDim2.new(0,300,0,50)
-	btn.Position = UDim2.new(0.05,0,0,y)
-	btn.Text = text
-	btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
-	btn.TextColor3 = Color3.fromRGB(255,255,255)
-	btn.TextSize = 18
-	btn.Font = Enum.Font.GothamBold
-	Instance.new("UICorner", btn)
-	return btn
+local function createToggle(parent,text,y,key)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0,320,0,55)
+    btn.Position = UDim2.new(0.05,0,0,y)
+    btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.TextSize = 18
+    btn.Font = Enum.Font.GothamBold
+    round(btn, 22)
+
+    local function refresh()
+        btn.Text = text.." "..(Config[key] and "ON" or "OFF")
+    end
+
+    refresh()
+
+    btn.MouseButton1Click:Connect(function()
+        Config[key] = not Config[key]
+        refresh()
+    end)
 end
 
-createButton(espTab,"Clover ESP",20)
-createButton(espTab,"Egg ESP",90)
-createButton(espTab,"Coin ESP",160)
+createToggle(espTab,"Clover ESP",20,"CloverESP")
+createToggle(espTab,"Egg ESP",90,"EggESP")
+createToggle(espTab,"Coin ESP",160,"CoinESP")
+createToggle(farmTab,"Auto Farm",20,"AutoFarm")
 
-createButton(farmTab,"Farm System",20)
-
--- CONFIGURAÇÕES
 local distBox = Instance.new("TextBox", configTab)
-distBox.Size = UDim2.new(0,300,0,50)
-distBox.Position = UDim2.new(0.05,0,0.1,0)
+distBox.Size = UDim2.new(0,320,0,55)
+distBox.Position = UDim2.new(0.05,0,0.08,0)
 distBox.Text = tostring(Config.ESPDistance)
+distBox.PlaceholderText = "Distância do ESP"
 distBox.BackgroundColor3 = Color3.fromRGB(30,30,30)
-distBox.TextColor3 = Color3.fromRGB(255,255,255)
-distBox.TextSize = 18
-distBox.Font = Enum.Font.GothamBold
-Instance.new("UICorner", distBox)
+distBox.TextColor3 = Color3.new(1,1,1)
+round(distBox, 22)
 
-distBox.FocusLost:Connect(function()
-	local num = tonumber(distBox.Text)
-	if num then
-		Config.ESPDistance = num
-	end
-end)
+local ownerTitle = Instance.new("TextLabel", ownerTab)
+ownerTitle.Size = UDim2.new(0,350,0,55)
+ownerTitle.Position = UDim2.new(0.05,0,0.08,0)
+ownerTitle.BackgroundTransparency = 1
+ownerTitle.Text = "OWNER PANEL "
+ownerTitle.TextColor3 = Color3.new(1,1,1)
+ownerTitle.Font = Enum.Font.GothamBold
+ownerTitle.TextSize = 24
 
--- KEY SYSTEM
+local ownerKeyView = Instance.new("TextLabel", ownerTab)
+ownerKeyView.Size = UDim2.new(0,420,0,45)
+ownerKeyView.Position = UDim2.new(0.05,0,0.22,0)
+ownerKeyView.BackgroundColor3 = Color3.fromRGB(30,30,30)
+ownerKeyView.Text = "Owner Key: "..OWNER_KEY
+ownerKeyView.TextColor3 = Color3.new(1,1,1)
+round(ownerKeyView, 18)
+
 local keyGui = Instance.new("ScreenGui")
-keyGui.Parent = player:WaitForChild("PlayerGui")
+keyGui.Parent = player.PlayerGui
 keyGui.ResetOnSpawn = false
 
 local keyFrame = Instance.new("Frame", keyGui)
-keyFrame.Size = UDim2.new(0,420,0,220)
-keyFrame.Position = UDim2.new(0.5,-210,0.5,-110)
+keyFrame.Size = UDim2.new(0,440,0,240)
+keyFrame.Position = UDim2.new(0.5,-220,0.5,-120)
 keyFrame.BackgroundColor3 = Color3.fromRGB(10,10,10)
-keyFrame.Active = true
-keyFrame.Draggable = true
-Instance.new("UICorner", keyFrame)
+round(keyFrame, 28)
 
 local keyTitle = Instance.new("TextLabel", keyFrame)
-keyTitle.Size = UDim2.new(1,0,0,50)
+keyTitle.Size = UDim2.new(1,0,0,55)
 keyTitle.BackgroundTransparency = 1
-keyTitle.Text = "Lulle Hub Key 😈"
-keyTitle.TextColor3 = Color3.fromRGB(255,255,255)
+keyTitle.Text = "Lulle Hub "
+keyTitle.TextColor3 = Color3.new(1,1,1)
 keyTitle.TextSize = 24
 keyTitle.Font = Enum.Font.GothamBold
 
 local input = Instance.new("TextBox", keyFrame)
-input.Size = UDim2.new(0.8,0,0,45)
+input.Size = UDim2.new(0.8,0,0,50)
 input.Position = UDim2.new(0.1,0,0.35,0)
 input.PlaceholderText = "Digite sua key"
 input.BackgroundColor3 = Color3.fromRGB(30,30,30)
-input.TextColor3 = Color3.fromRGB(255,255,255)
-Instance.new("UICorner", input)
+input.TextColor3 = Color3.new(1,1,1)
+round(input, 20)
 
 local enter = Instance.new("TextButton", keyFrame)
-enter.Size = UDim2.new(0.8,0,0,45)
+enter.Size = UDim2.new(0.8,0,0,50)
 enter.Position = UDim2.new(0.1,0,0.65,0)
 enter.Text = "ENTRAR"
 enter.BackgroundColor3 = Color3.fromRGB(0,255,120)
 enter.TextColor3 = Color3.fromRGB(0,0,0)
-Instance.new("UICorner", enter)
+round(enter, 20)
 
 enter.MouseButton1Click:Connect(function()
-	if input.Text == FIXED_KEY then
-		keyGui:Destroy()
-		main.Visible = true
-	else
-		input.Text = ""
-		input.PlaceholderText = "Key incorreta"
-	end
+    local typed = input.Text
+
+    if VALID_KEYS[typed] then
+        keyGui:Destroy()
+        main.Visible = true
+
+        if typed == OWNER_KEY then
+            ownerBtn = menuBtn("OWNER",230,"OWNER")
+        end
+    else
+        input.Text = ""
+        input.PlaceholderText = "Key incorreta"
+    end
 end)
